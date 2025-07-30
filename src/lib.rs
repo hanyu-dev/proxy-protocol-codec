@@ -10,7 +10,7 @@ pub mod v1;
 #[cfg(feature = "feat-codec-v2")]
 pub mod v2;
 
-#[cfg(any(test, feature = "feat-codec-encode"))]
+#[cfg(any(test, feature = "feat-alloc"))]
 extern crate alloc;
 
 #[cfg(any(test, feature = "feat-std"))]

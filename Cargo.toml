@@ -30,6 +30,7 @@ ppp = "=2.3.0"
 [features]
 default = [
     "feat-std",
+    "feat-alloc",
     "feat-codec-encode",
     "feat-codec-decode",
     "feat-codec-v1",
@@ -41,11 +42,14 @@ default = [
 # Enable std support.
 feat-std = []
 
+# Enable alloc support.
+feat-alloc = []
+
 # Enable nightly features.
 feat-nightly = []
 
 # Enable encoding support.
-feat-codec-encode = ["dep:thiserror"]
+feat-codec-encode = ["feat-alloc", "dep:thiserror"]
 
 # Enable decoding support.
 feat-codec-decode = ["dep:thiserror", "dep:slicur"]

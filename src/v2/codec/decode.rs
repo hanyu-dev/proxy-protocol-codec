@@ -1,5 +1,7 @@
 //! PROXY Protocol v2 header decoder
 
+#[cfg(feature = "feat-alloc")]
+use alloc::vec::Vec;
 use core::cmp::min;
 use core::iter::FusedIterator;
 use core::net::{Ipv4Addr, Ipv6Addr};
@@ -276,6 +278,15 @@ wrapper_lite::wrapper! {
     /// This implements `IntoIterator` to iterate over the extensions. See
     /// [`DecodedExtensionsIter`] for more details.
     pub DecodedExtensions<'a>(&'a [u8])
+}
+
+impl<'a> DecodedExtensions<'a> {
+    #[cfg(feature = "feat-alloc")]
+    /// Iterates over the extensions of the PROXY Protocol v2 header and
+    /// collects them into a `Vec<ExtensionRef>`.
+    pub fn collect(self) -> Result<Vec<ExtensionRef<'a>>, DecodeError> {
+        self.into_iter().collect()
+    }
 }
 
 impl<'a> IntoIterator for DecodedExtensions<'a> {
