@@ -26,6 +26,10 @@ pub type Encoded = HeaderEncoder<Finished>;
 
 impl HeaderEncoder<Magic> {
     /// Encodes a PROXY Protocol v2 header from the given `Header`.
+    ///
+    /// This returns a [`Encoded`] which can be finalized to produce the encoded
+    /// header bytes. To write some extensions to the header, use the
+    /// methods like [`Encoded::write_ext_alpn`], etc.
     pub fn encode(header: &Header) -> Encoded {
         let this = Self {
             inner: Vec::with_capacity(HEADER_SIZE),
@@ -230,9 +234,10 @@ impl HeaderEncoder<Finished> {
     /// Calculates and writes the `CRC32C` extension bytes to the header and
     /// finalizes the header encoding.
     pub fn finish_with_crc32c(mut self) -> Result<Vec<u8>, EncodeError> {
-        const FIXED_CRC32C_EXTENSION: [u8; 6] = [
+        const FIXED_CRC32C_EXTENSION: [u8; 7] = [
             ExtensionType::CRC32C as u8,
-            (u32::BITS / 8) as u8, // Length of the CRC32C value
+            0,
+            4, // Length of the CRC32C value
             0,
             0,
             0,
@@ -244,7 +249,7 @@ impl HeaderEncoder<Finished> {
         let crc32c_bytes =
             crc32c::crc32c_append(crc32c::crc32c_append(0, &self.inner), &FIXED_CRC32C_EXTENSION).to_be_bytes();
 
-        // Safety: FIXED_CRC32C_EXTENSION.len() == 6 < u16::MAX
+        // Safety: FIXED_CRC32C_EXTENSION.len() == 7 < u16::MAX
         self.write_ext_custom(ExtensionRef::new(ExtensionType::CRC32C, &crc32c_bytes).unwrap())
             .finish()
     }
