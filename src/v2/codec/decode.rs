@@ -55,11 +55,14 @@ const PROTOCOL_DGRAM: u8 = Protocol::Dgram as u8;
 
 impl HeaderDecoder {
     #[allow(clippy::missing_panics_doc)]
-    /// Try to decode the PROXY Protocol v2 header from the given buffer.
+    /// Attempts to decode the PROXY Protocol v2 header from its bytes
+    /// representation.
     ///
-    /// The caller SHOULD first **peek** exactly **12** bytes from the network
-    /// input into a buffer and [`decode`](Self::decode) it, to detect the
-    /// presence of a PROXY Protocol v2 header.
+    /// The caller MAY first **peek** exactly **[`HEADER_SIZE`]** bytes from the
+    /// network input into a buffer and then [`decode`](Self::decode) it, to
+    /// detect the presence of a PROXY Protocol v2 header. If less than 16
+    /// bytes are peeked, the caller MAY reject the connection, or treat the
+    /// connection as a normal one w/o PROXY Protocol v2 header.
     ///
     /// When the buffer is not prefixed with PROXY Protocol v2 header
     /// [`MAGIC`](Header::MAGIC), this method returns [`Decoded::None`]. The
@@ -68,9 +71,9 @@ impl HeaderDecoder {
     ///
     /// When a PROXY protocol v2 header is detected, [`Decoded::Partial`] is
     /// returned (this is what we expect, since we only have the MAGIC bytes
-    /// peeked). The caller SHOULD then **read** exactly `16 +
-    /// remaining_bytes` bytes into a buffer (may reuse the buffer peeking
-    /// the MAGIC bytes) then [`decode`](Self::decode) it.
+    /// peeked). The caller SHOULD then **read** exactly [`HEADER_SIZE`] +
+    /// `remaining_bytes` bytes into a buffer (may reuse the buffer peeking
+    /// the MAGIC bytes) and [`decode`](Self::decode) it again.
     ///
     /// When any error is returned, the caller SHOULD reject the connection.
     ///
