@@ -1,0 +1,36 @@
+name: CI Test
+
+on:
+  push:
+    paths: [ "src/**", "Cargo.toml"]
+  workflow_dispatch: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Read MSRV from Cargo.toml
+        id: msrv
+        run: |
+          echo "MSRV=$(grep '^rust-version = ' Cargo.toml | cut -d'"' -f2)" >> $GITHUB_ENV
+      - name: Setup Rust toolchain to MSRV
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ env.MSRV }}
+      - name: Build
+        run: cargo build --verbose
+      # criterion breaks MSRV
+      - name: Setup Rust toolchain to latest stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+      - name: Test
+        run: cargo test --verbose
+        env:
+          RUST_BACKTRACE: 1

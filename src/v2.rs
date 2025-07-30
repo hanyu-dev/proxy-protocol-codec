@@ -26,7 +26,7 @@ pub struct Header {
 
 impl Header {
     /// The magic bytes that identify the PROXY Protocol v2 header.
-    pub const MAGIC: &[u8; 12] = b"\r\n\r\n\x00\r\nQUIT\n";
+    pub const MAGIC: &'static [u8; 12] = b"\r\n\r\n\x00\r\nQUIT\n";
 
     #[inline]
     /// Creates a new `Header` with [`Command::Local`]
