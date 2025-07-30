@@ -1,6 +1,7 @@
 //! PROXY Protocol v2 header decoder
 
 use core::cmp::min;
+use core::iter::FusedIterator;
 use core::net::{Ipv4Addr, Ipv6Addr};
 use core::num::NonZeroUsize;
 
@@ -283,24 +284,50 @@ impl<'a> IntoIterator for DecodedExtensions<'a> {
 
     fn into_iter(self) -> Self::IntoIter {
         DecodedExtensionsIter {
-            inner: Reader::init(self.inner),
+            inner: Some(Reader::init(self.inner)),
         }
     }
 }
 
 #[derive(Debug)]
 /// Iterator over the extensions of the PROXY Protocol v2 header.
+///
+/// This iterator yields [`ExtensionRef`]s, which are references to the
+/// decoded extensions. If an error occurs while decoding an extension, the
+/// iterator will yield an `Err(DecodeError)` instead.
+///
+/// The iterator is fused, meaning that once it returns `None`, it will
+/// continue to return `None` on subsequent calls.
 pub struct DecodedExtensionsIter<'a> {
-    inner: Reader<'a>,
+    inner: Option<Reader<'a>>,
 }
 
 impl<'a> Iterator for DecodedExtensionsIter<'a> {
     type Item = Result<ExtensionRef<'a>, DecodeError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        ExtensionRef::decode(&mut self.inner).transpose()
+        match self.inner.as_mut() {
+            Some(reader) => match ExtensionRef::decode(reader) {
+                Ok(Some(extension)) => Some(Ok(extension)),
+                Ok(None) => {
+                    // No more extensions, stop iterating.
+                    self.inner = None;
+
+                    None
+                }
+                Err(err) => {
+                    // An error occurred while decoding an extension, return the error.
+                    self.inner = None;
+
+                    Some(Err(err))
+                }
+            },
+            None => None,
+        }
     }
 }
+
+impl<'a> FusedIterator for DecodedExtensionsIter<'a> {}
 
 #[derive(Debug)]
 #[derive(thiserror::Error)]
