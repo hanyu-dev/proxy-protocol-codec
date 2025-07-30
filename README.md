@@ -58,7 +58,8 @@ let header = proxy_protocol_codec::v2::Header::new_proxy(
     },
 );
 
-let encoded = proxy_protocol_codec::v2::HeaderEncoder::encode(&header)
+let encoded = header
+    .encode()
     .write_ext_authority(b"example.com")? // Optional, write extensions.
     .finish()?;
 ```
@@ -93,7 +94,7 @@ if peeked != 16 {
     ));
 }
 
-match proxy_protocol_codec::v2::HeaderDecoder::decode(&buf[..])? {
+match proxy_protocol_codec::v2::Header::decode(&buf[..])? {
     proxy_protocol_codec::v2::Decoded::Partial(remaining) => {
         let total_length = proxy_protocol_codec::v2::HEADER_SIZE + remaining.get();
 
@@ -108,7 +109,7 @@ match proxy_protocol_codec::v2::HeaderDecoder::decode(&buf[..])? {
         )?;
 
         // Decode the full header with the remaining bytes.
-        let proxy_protocol_codec::v2::Decoded::Some(header) = proxy_protocol_codec::v2::HeaderDecoder::decode(&buf[..])? else {
+        let proxy_protocol_codec::v2::Decoded::Some(header) = proxy_protocol_codec::v2::Header::decode(&buf[..])? else {
             panic!("must be Some here");
         };
 

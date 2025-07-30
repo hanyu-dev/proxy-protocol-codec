@@ -65,6 +65,20 @@ impl Header {
     pub const fn address_pair(&self) -> &AddressPair {
         &self.address_pair
     }
+
+    #[cfg(feature = "feat-codec-encode")]
+    #[inline]
+    /// See [`HeaderEncoder::encode`].
+    pub fn encode(&self) -> Encoded {
+        HeaderEncoder::encode(self)
+    }
+
+    #[cfg(feature = "feat-codec-decode")]
+    #[inline]
+    /// See [`HeaderDecoder::decode`].
+    pub fn decode<'a>(encoded: &'a [u8]) -> Result<Decoded<'a>, DecodeError> {
+        HeaderDecoder::decode(encoded)
+    }
 }
 
 #[cfg(test)]

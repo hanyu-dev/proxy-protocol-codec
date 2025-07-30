@@ -8,4 +8,4 @@ pub mod encode;
 #[cfg(feature = "feat-codec-decode")]
 pub use decode::{DecodeError, Decoded, DecodedExtensionsIter, DecodedHeader, HeaderDecoder};
 #[cfg(feature = "feat-codec-encode")]
-pub use encode::{EncodeError, HeaderEncoder};
+pub use encode::{EncodeError, Encoded, HeaderEncoder};

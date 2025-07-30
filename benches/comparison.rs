@@ -159,12 +159,12 @@ fn benchmarks_v2(c: &mut Criterion) {
                 group.bench_function("proxy_protocol_codec/inet", |b| {
                     b.iter(|| {
                         let proxy_protocol_codec::v2::Decoded::Partial(remaining) =
-                            proxy_protocol_codec::v2::HeaderDecoder::decode(&encoded[..16]).unwrap()
+                            proxy_protocol_codec::v2::Header::decode(&encoded[..16]).unwrap()
                         else {
                             panic!("must be Partial here");
                         };
 
-                        proxy_protocol_codec::v2::HeaderDecoder::decode(&encoded[..16 + remaining.get()]).unwrap()
+                        proxy_protocol_codec::v2::Header::decode(&encoded[..16 + remaining.get()]).unwrap()
                     });
                 });
             }
@@ -182,9 +182,7 @@ fn benchmarks_v2(c: &mut Criterion) {
                 },
             );
 
-            let encoded = proxy_protocol_codec::v2::HeaderEncoder::encode(&header)
-                .finish()
-                .unwrap();
+            let encoded = proxy_protocol_codec::v2::Header::encode(&header).finish().unwrap();
 
             {
                 let encoded = black_box(encoded.clone());
@@ -208,12 +206,12 @@ fn benchmarks_v2(c: &mut Criterion) {
                 group.bench_function("proxy_protocol_codec/inet6", |b| {
                     b.iter(|| {
                         let proxy_protocol_codec::v2::Decoded::Partial(remaining) =
-                            proxy_protocol_codec::v2::HeaderDecoder::decode(&encoded[..16]).unwrap()
+                            proxy_protocol_codec::v2::Header::decode(&encoded[..16]).unwrap()
                         else {
                             panic!("must be Partial here");
                         };
 
-                        proxy_protocol_codec::v2::HeaderDecoder::decode(&encoded[..16 + remaining.get()]).unwrap()
+                        proxy_protocol_codec::v2::Header::decode(&encoded[..16 + remaining.get()]).unwrap()
                     });
                 });
             }
@@ -259,11 +257,7 @@ fn benchmarks_v2(c: &mut Criterion) {
                 ));
 
                 group.bench_function("proxy_protocol_codec/inet", |b| {
-                    b.iter(|| {
-                        proxy_protocol_codec::v2::HeaderEncoder::encode(&header)
-                            .finish()
-                            .unwrap()
-                    });
+                    b.iter(|| header.encode().finish().unwrap());
                 });
             }
         }
@@ -301,11 +295,7 @@ fn benchmarks_v2(c: &mut Criterion) {
                 ));
 
                 group.bench_function("proxy_protocol_codec/inet6", |b| {
-                    b.iter(|| {
-                        proxy_protocol_codec::v2::HeaderEncoder::encode(&header)
-                            .finish()
-                            .unwrap()
-                    });
+                    b.iter(|| header.encode().finish().unwrap());
                 });
             }
         }

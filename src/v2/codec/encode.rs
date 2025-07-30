@@ -21,9 +21,12 @@ pub struct HeaderEncoder<Stage = Magic> {
     _stage: PhantomData<Stage>,
 }
 
+/// The encoded header type.
+pub type Encoded = HeaderEncoder<Finished>;
+
 impl HeaderEncoder<Magic> {
     /// Encodes a PROXY Protocol v2 header from the given `Header`.
-    pub fn encode(header: &Header) -> HeaderEncoder<Finished> {
+    pub fn encode(header: &Header) -> Encoded {
         let this = Self {
             inner: Vec::with_capacity(HEADER_SIZE),
             _stage: PhantomData,
