@@ -9,6 +9,8 @@ use std::io;
 #[cfg(feature = "feat-codec-decode")]
 use slicur::Reader;
 
+#[cfg(feature = "feat-codec-v1")]
+use crate::v1;
 #[cfg(feature = "feat-codec-decode")]
 use crate::v2::DecodeError;
 
@@ -147,7 +149,45 @@ pub enum AddressPair {
     },
 }
 
+#[cfg(feature = "feat-codec-v1")]
+impl From<v1::AddressPair> for AddressPair {
+    fn from(addr: v1::AddressPair) -> Self {
+        AddressPair::from_v1(addr)
+    }
+}
+
 impl AddressPair {
+    #[cfg(feature = "feat-codec-v1")]
+    #[inline]
+    /// Converts a [`v1::AddressPair`] to an [`AddressPair`].
+    pub const fn from_v1(addr: v1::AddressPair) -> Self {
+        match addr {
+            v1::AddressPair::Unspecified => Self::Unspecified,
+            v1::AddressPair::Inet {
+                src_ip,
+                dst_ip,
+                src_port,
+                dst_port,
+            } => Self::Inet {
+                src_ip,
+                dst_ip,
+                src_port,
+                dst_port,
+            },
+            v1::AddressPair::Inet6 {
+                src_ip,
+                dst_ip,
+                src_port,
+                dst_port,
+            } => Self::Inet6 {
+                src_ip,
+                dst_ip,
+                src_port,
+                dst_port,
+            },
+        }
+    }
+
     #[cfg(feature = "feat-codec-encode")]
     #[inline]
     pub(crate) const fn address_family(&self) -> Family {
