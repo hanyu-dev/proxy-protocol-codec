@@ -55,7 +55,7 @@ impl fmt::Display for Header {
 
 impl Header {
     /// PROXY Protocol v1 magic bytes.
-    pub const MAGIC: &'static str = "PROXY";
+    pub const MAGIC: &'static str = crate::Version::MAGIC_V1;
 
     /// Creates a new PROXY Protocol v1 header.
     pub const fn new(address_pair: AddressPair) -> Self {

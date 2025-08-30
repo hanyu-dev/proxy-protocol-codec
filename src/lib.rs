@@ -18,3 +18,43 @@ extern crate alloc;
 
 #[cfg(any(test, feature = "feat-std"))]
 extern crate std;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The supported PROXY Protocol versions.
+pub enum Version {
+    /// PROXY Protocol version 1
+    V1,
+
+    /// PROXY Protocol version 2
+    V2,
+}
+
+impl Version {
+    /// The magic bytes that indicate a PROXY Protocol v1 header.
+    pub const MAGIC_V1: &'static str = "PROXY";
+    /// The magic bytes that indicate a PROXY Protocol v2 header.
+    pub const MAGIC_V2: &'static [u8; 12] = b"\r\n\r\n\x00\r\nQUIT\n";
+
+    // #[inline]
+    /// Peeks into the given buffer to determine if it contains a valid PROXY
+    /// Protocol version magic.
+    ///
+    /// ## Behaviours
+    ///
+    /// If the buffer is too short to determine the version, `Ok(None)` is
+    /// returned. If the buffer contains a valid version magic,
+    /// `Ok(Some(Version))` is returned. Otherwise, `Err(())` is returned.
+    pub fn peek(buf: &[u8]) -> Result<Option<Self>, ()> {
+        const V1_MAGIC_LEN: usize = Version::MAGIC_V1.len();
+        const V2_MAGIC_LEN: usize = Version::MAGIC_V2.len();
+
+        match buf.len() {
+            0 => Ok(None),
+            1..V2_MAGIC_LEN if Self::MAGIC_V2.starts_with(buf) => Ok(None),
+            V2_MAGIC_LEN.. if buf.starts_with(Self::MAGIC_V2) => Ok(Some(Self::V2)),
+            1..V1_MAGIC_LEN if Self::MAGIC_V1.as_bytes().starts_with(buf) => Ok(None),
+            V1_MAGIC_LEN.. if buf.starts_with(Self::MAGIC_V1.as_bytes()) => Ok(Some(Self::V1)),
+            _ => Err(()),
+        }
+    }
+}
