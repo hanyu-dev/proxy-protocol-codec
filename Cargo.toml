@@ -35,7 +35,6 @@ default = [
     "feat-codec-decode",
     "feat-codec-v1",
     "feat-codec-v2",
-    "feat-codec-v2-crc32c",
     "feat-uni-addr",
 ]
 
