@@ -1,6 +1,6 @@
 [package]
 name = "proxy-protocol-codec"
-version = "0.1.2"
+version = "0.2.0-alpha.1"
 edition = "2021"
 rust-version = "1.77.0"
 
@@ -36,7 +36,7 @@ default = [
     "feat-codec-v1",
     "feat-codec-v2",
     "feat-codec-v2-crc32c",
-    "feat-codec-v2-uni-addr",
+    "feat-uni-addr",
 ]
 
 # Enable std support.
@@ -64,7 +64,10 @@ feat-codec-v2 = []
 feat-codec-v2-crc32c = ["feat-std", "dep:crc32c"]
 
 # Enable uni-addr support.
-feat-codec-v2-uni-addr = ["feat-std", "dep:uni-addr"]
+feat-uni-addr = ["feat-std", "dep:uni-addr"]
+
+# Deprecated features.
+feat-codec-v2-uni-addr = ["feat-uni-addr"]
 
 [lints]
 clippy.allow_attributes_without_reason = "warn"

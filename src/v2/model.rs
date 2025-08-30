@@ -3,7 +3,7 @@
 #[cfg(feature = "feat-codec-encode")]
 use alloc::vec::Vec;
 use core::net::{Ipv4Addr, Ipv6Addr};
-#[cfg(feature = "feat-codec-v2-uni-addr")]
+#[cfg(feature = "feat-uni-addr")]
 use std::io;
 
 #[cfg(feature = "feat-codec-decode")]
@@ -159,7 +159,7 @@ impl AddressPair {
         }
     }
 
-    #[cfg(feature = "feat-codec-v2-uni-addr")]
+    #[cfg(feature = "feat-uni-addr")]
     /// Returns the source address.
     pub fn src_uni_addr(&self) -> io::Result<Option<uni_addr::SocketAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
@@ -184,7 +184,7 @@ impl AddressPair {
         }
     }
 
-    #[cfg(feature = "feat-codec-v2-uni-addr")]
+    #[cfg(feature = "feat-uni-addr")]
     /// Returns the destination address.
     pub fn dst_uni_addr(&self) -> io::Result<Option<uni_addr::SocketAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
