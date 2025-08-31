@@ -35,7 +35,8 @@ impl Version {
     /// The magic bytes that indicate a PROXY Protocol v2 header.
     pub const MAGIC_V2: &'static [u8; 12] = b"\r\n\r\n\x00\r\nQUIT\n";
 
-    // #[inline]
+    #[allow(clippy::result_unit_err)]
+    #[inline]
     /// Peeks into the given buffer to determine if it contains a valid PROXY
     /// Protocol version magic.
     ///
@@ -48,12 +49,14 @@ impl Version {
         const V1_MAGIC_LEN: usize = Version::MAGIC_V1.len();
         const V2_MAGIC_LEN: usize = Version::MAGIC_V2.len();
 
+        #[allow(overlapping_range_endpoints)]
+        // Rust 1.77 doesn't support exclusive range endpoints in pattern matching.
         match buf.len() {
             0 => Ok(None),
-            1..V2_MAGIC_LEN if Self::MAGIC_V2.starts_with(buf) => Ok(None),
             V2_MAGIC_LEN.. if buf.starts_with(Self::MAGIC_V2) => Ok(Some(Self::V2)),
-            1..V1_MAGIC_LEN if Self::MAGIC_V1.as_bytes().starts_with(buf) => Ok(None),
             V1_MAGIC_LEN.. if buf.starts_with(Self::MAGIC_V1.as_bytes()) => Ok(Some(Self::V1)),
+            1..=V2_MAGIC_LEN if Self::MAGIC_V2.starts_with(buf) => Ok(None),
+            1..=V1_MAGIC_LEN if Self::MAGIC_V1.as_bytes().starts_with(buf) => Ok(None),
             _ => Err(()),
         }
     }

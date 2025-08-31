@@ -76,7 +76,7 @@ impl Header {
     #[cfg(feature = "feat-codec-decode")]
     #[inline]
     /// See [`HeaderDecoder::decode`].
-    pub fn decode<'a>(encoded: &'a [u8]) -> Result<Decoded<'a>, DecodeError> {
+    pub fn decode(encoded: &[u8]) -> Result<Decoded<'_>, DecodeError> {
         HeaderDecoder::decode(encoded)
     }
 }

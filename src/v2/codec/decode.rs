@@ -83,7 +83,7 @@ impl HeaderDecoder {
     /// When there're extensions in the PROXY Protocol v2 header, the caller
     /// SHOULD read the extensions to check if they are malformed or not.
     /// See [`DecodedExtensions`] for more details.
-    pub fn decode<'a>(buf: &'a [u8]) -> Result<Decoded<'a>, DecodeError> {
+    pub fn decode(buf: &[u8]) -> Result<Decoded<'_>, DecodeError> {
         // 1. Magic bytes
         {
             let magic_length = min(Header::MAGIC.len(), buf.len());
