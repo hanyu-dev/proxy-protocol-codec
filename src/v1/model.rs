@@ -104,15 +104,15 @@ impl AddressPair {
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the source address.
-    pub fn src_uni_addr(&self) -> io::Result<Option<uni_addr::SocketAddr>> {
+    pub fn src_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
         match self {
             Self::Unspecified => Ok(None),
-            Self::Inet { src_ip, src_port, .. } => Ok(Some(uni_addr::SocketAddr::Inet(SocketAddr::V4(
+            Self::Inet { src_ip, src_port, .. } => Ok(Some(uni_addr::UniAddr::from(SocketAddr::V4(
                 SocketAddrV4::new(*src_ip, *src_port),
             )))),
-            Self::Inet6 { src_ip, src_port, .. } => Ok(Some(uni_addr::SocketAddr::Inet(SocketAddr::V6(
+            Self::Inet6 { src_ip, src_port, .. } => Ok(Some(uni_addr::UniAddr::from(SocketAddr::V6(
                 SocketAddrV6::new(*src_ip, *src_port, 0, 0),
             )))),
         }
@@ -120,15 +120,15 @@ impl AddressPair {
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the destination address.
-    pub fn dst_uni_addr(&self) -> io::Result<Option<uni_addr::SocketAddr>> {
+    pub fn dst_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
         match self {
             Self::Unspecified => Ok(None),
-            Self::Inet { dst_ip, dst_port, .. } => Ok(Some(uni_addr::SocketAddr::Inet(SocketAddr::V4(
+            Self::Inet { dst_ip, dst_port, .. } => Ok(Some(uni_addr::UniAddr::from(SocketAddr::V4(
                 SocketAddrV4::new(*dst_ip, *dst_port),
             )))),
-            Self::Inet6 { dst_ip, dst_port, .. } => Ok(Some(uni_addr::SocketAddr::Inet(SocketAddr::V6(
+            Self::Inet6 { dst_ip, dst_port, .. } => Ok(Some(uni_addr::UniAddr::from(SocketAddr::V6(
                 SocketAddrV6::new(*dst_ip, *dst_port, 0, 0),
             )))),
         }

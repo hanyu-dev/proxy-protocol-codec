@@ -270,14 +270,14 @@ pub struct DecodedHeader<'a> {
 }
 
 wrapper_lite::wrapper! {
-    #[wrapper_impl(Deref)]
+    #[wrapper_impl(Deref<[u8]>)]
     #[derive(Debug)]
     /// A wrapper around a slice of bytes representing the encoded extensions
     /// of the PROXY Protocol v2 header.
     ///
     /// This implements `IntoIterator` to iterate over the extensions. See
     /// [`DecodedExtensionsIter`] for more details.
-    pub DecodedExtensions<'a>(&'a [u8])
+    pub struct DecodedExtensions<'a>(&'a [u8]);
 }
 
 impl<'a> DecodedExtensions<'a> {

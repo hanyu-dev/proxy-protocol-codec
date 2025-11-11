@@ -2,7 +2,7 @@
 name = "proxy-protocol-codec"
 version = "0.2.2"
 edition = "2021"
-rust-version = "1.77.0"
+rust-version = "1.83.0"
 
 # === Publication info ===
 authors = ["Hantong Chen <cxwdyx620@gmail.com>", "Miguel D. Salcedo <miguel@salcedo.cc>"]
@@ -15,10 +15,10 @@ repository = "https://github.com/hanyu-dev/proxy-protocol-codec"
 
 [dependencies]
 crc32c = { version = "0.6.8", default-features = false, optional = true }
-slicur = { version = "0.2.0", optional = true }
+slicur = { version = "0.3.0", optional = true }
 thiserror = { version = "2.0", optional = true }
-uni-addr = { version = "0.2.2", default-features = false, optional = true }
-wrapper-lite = { version = "0.1.1", default-features = false }
+uni-addr = { version = "0.3.1", default-features = false, optional = true }
+wrapper-lite = { version = "0.3.2", default-features = false }
 
 [dev-dependencies]
 criterion = { version = "0.7.0", features = ["html_reports"] }
@@ -51,7 +51,7 @@ feat-nightly = []
 feat-codec-encode = ["feat-alloc", "dep:thiserror"]
 
 # Enable decoding support.
-feat-codec-decode = ["dep:thiserror", "dep:slicur"]
+feat-codec-decode = ["dep:slicur", "dep:thiserror"]
 
 # Enable the v1 codec support.
 feat-codec-v1 = []
@@ -66,7 +66,7 @@ feat-codec-v2-crc32c = ["feat-std", "dep:crc32c"]
 feat-uni-addr = ["feat-std", "dep:uni-addr"]
 
 # Deprecated features.
-feat-codec-v2-uni-addr = ["feat-uni-addr"]
+feat-codec-v2-uni-addr = ["feat-uni-addr", "feat-std"]
 
 [lints]
 clippy.allow_attributes_without_reason = "warn"
