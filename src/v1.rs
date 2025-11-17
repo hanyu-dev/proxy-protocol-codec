@@ -105,6 +105,10 @@ impl Header {
     /// exceed the [`MAXIMUM_LENGTH`].
     ///
     /// When any error is returned, the caller SHOULD reject the connection.
+    ///
+    /// # Errors
+    ///
+    /// See [`DecodeError`].
     pub fn decode(header_bytes: &[u8]) -> Result<Decoded, DecodeError> {
         // 1. Magic bytes flight check
         {

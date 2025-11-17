@@ -57,7 +57,8 @@ const PROTOCOL_STREAM: u8 = Protocol::Stream as u8;
 const PROTOCOL_DGRAM: u8 = Protocol::Dgram as u8;
 
 impl HeaderDecoder {
-    #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::missing_panics_doc, reason = "XXX")]
+    #[allow(clippy::too_many_lines, reason = "XXX")]
     /// Attempts to decode the PROXY Protocol v2 header from its bytes
     /// representation.
     ///
@@ -83,6 +84,10 @@ impl HeaderDecoder {
     /// When there're extensions in the PROXY Protocol v2 header, the caller
     /// SHOULD read the extensions to check if they are malformed or not.
     /// See [`DecodedExtensions`] for more details.
+    ///
+    /// # Errors
+    ///
+    /// See [`DecodeError`].
     pub fn decode(buf: &[u8]) -> Result<Decoded<'_>, DecodeError> {
         // 1. Magic bytes
         {
@@ -98,8 +103,6 @@ impl HeaderDecoder {
             None => {}
             Some(remaining_bytes) => {
                 // The caller should read 16 bytes first, in fact.
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
 
                 return Ok(Decoded::Partial(remaining_bytes));
             }
@@ -109,9 +112,6 @@ impl HeaderDecoder {
         match buf[12] & MASK_HI {
             BYTE_VERSION => {}
             v => {
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
-
                 return Err(DecodeError::InvalidVersion(v));
             }
         };
@@ -121,9 +121,6 @@ impl HeaderDecoder {
             COMMAND_LOCAL => Command::Local,
             COMMAND_PROXY => Command::Proxy,
             c => {
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
-
                 return Err(DecodeError::InvalidCommand(c));
             }
         };
@@ -135,9 +132,6 @@ impl HeaderDecoder {
             FAMILY_INET6 => Family::Inet6,
             FAMILY_UNIX => Family::Unix,
             f => {
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
-
                 return Err(DecodeError::InvalidFamily(f));
             }
         };
@@ -148,9 +142,6 @@ impl HeaderDecoder {
             PROTOCOL_STREAM => Protocol::Stream,
             PROTOCOL_DGRAM => Protocol::Dgram,
             p => {
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
-
                 return Err(DecodeError::InvalidProtocol(p));
             }
         };
@@ -168,9 +159,6 @@ impl HeaderDecoder {
             Some(None) => &buf[HEADER_SIZE..],
             Some(Some(remaining_bytes)) => return Ok(Decoded::Partial(remaining_bytes)),
             None => {
-                #[cfg(feature = "feat-nightly")]
-                core::hint::cold_path();
-
                 // HEADER_SIZE + remaining_len < buf.len(), reject trailing data
                 return Err(DecodeError::TrailingData);
             }
@@ -180,9 +168,6 @@ impl HeaderDecoder {
             Family::Unspecified => (AddressPair::Unspecified, payload),
             Family::Inet => {
                 if payload.len() < ADDR_INET_SIZE {
-                    #[cfg(feature = "feat-nightly")]
-                    core::hint::cold_path();
-
                     return Err(DecodeError::MalformedData);
                 }
 
@@ -198,9 +183,6 @@ impl HeaderDecoder {
             }
             Family::Inet6 => {
                 if payload.len() < ADDR_INET6_SIZE {
-                    #[cfg(feature = "feat-nightly")]
-                    core::hint::cold_path();
-
                     return Err(DecodeError::MalformedData);
                 }
 
@@ -216,9 +198,6 @@ impl HeaderDecoder {
             }
             Family::Unix => {
                 if payload.len() < ADDR_UNIX_SIZE {
-                    #[cfg(feature = "feat-nightly")]
-                    core::hint::cold_path();
-
                     return Err(DecodeError::MalformedData);
                 }
 
@@ -245,7 +224,7 @@ impl HeaderDecoder {
     }
 }
 
-#[allow(clippy::large_enum_variant)]
+#[allow(clippy::large_enum_variant, reason = "XXX")]
 #[derive(Debug)]
 /// The result of decoding a PROXY Protocol v2 header.
 pub enum Decoded<'a> {
@@ -270,7 +249,7 @@ pub struct DecodedHeader<'a> {
 }
 
 wrapper_lite::wrapper! {
-    #[wrapper_impl(Deref<[u8]>)]
+    #[wrapper_impl(AsRef<[u8]>)]
     #[derive(Debug)]
     /// A wrapper around a slice of bytes representing the encoded extensions
     /// of the PROXY Protocol v2 header.
@@ -284,6 +263,10 @@ impl<'a> DecodedExtensions<'a> {
     #[cfg(feature = "feat-alloc")]
     /// Iterates over the extensions of the PROXY Protocol v2 header and
     /// collects them into a `Vec<ExtensionRef>`.
+    ///
+    /// # Errors
+    ///
+    /// See [`DecodeError`].
     pub fn collect(self) -> Result<Vec<ExtensionRef<'a>>, DecodeError> {
         self.into_iter().collect()
     }
@@ -338,8 +321,9 @@ impl<'a> Iterator for DecodedExtensionsIter<'a> {
     }
 }
 
-impl<'a> FusedIterator for DecodedExtensionsIter<'a> {}
+impl FusedIterator for DecodedExtensionsIter<'_> {}
 
+#[allow(clippy::module_name_repetitions, reason = "XXX")]
 #[derive(Debug)]
 #[derive(thiserror::Error)]
 /// Errors that can occur while decoding a PROXY Protocol v2 header.

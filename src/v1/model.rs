@@ -73,6 +73,10 @@ impl AddressPair {
     #[cfg(feature = "feat-codec-v2")]
     #[inline]
     /// Converts a [`v2::AddressPair`] to an [`AddressPair`].
+    ///
+    /// # Errors
+    ///
+    /// See [`Unsupported`].
     pub const fn try_from_v2(value: v2::AddressPair) -> Result<Self, Unsupported> {
         match value {
             v2::AddressPair::Unspecified => Ok(Self::Unspecified),
@@ -104,6 +108,10 @@ impl AddressPair {
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the source address.
+    ///
+    /// # Errors
+    ///
+    /// This is infallible, but kept for API consistency.
     pub fn src_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -120,6 +128,10 @@ impl AddressPair {
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the destination address.
+    ///
+    /// # Errors
+    ///
+    /// This is infallible, but kept for API consistency.
     pub fn dst_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 

@@ -52,7 +52,7 @@ impl HeaderEncoder<Magic> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn write_magic(mut self) -> HeaderEncoder<VerCmd> {
         self.inner.extend(Header::MAGIC);
 
@@ -64,7 +64,7 @@ impl HeaderEncoder<Magic> {
 }
 
 impl HeaderEncoder<VerCmd> {
-    #[inline(always)]
+    #[inline]
     fn write_ver_cmd(mut self, command: Command) -> HeaderEncoder<FamProto> {
         self.inner.push(BYTE_VERSION | command as u8);
 
@@ -76,7 +76,7 @@ impl HeaderEncoder<VerCmd> {
 }
 
 impl HeaderEncoder<FamProto> {
-    #[inline(always)]
+    #[inline]
     fn write_fam_proto(mut self, family: Family, protocol: Protocol) -> HeaderEncoder<Len> {
         self.inner.push(family as u8 | protocol as u8);
 
@@ -88,7 +88,7 @@ impl HeaderEncoder<FamProto> {
 }
 
 impl HeaderEncoder<Len> {
-    #[inline(always)]
+    #[inline]
     fn write_len(mut self, len: u16) -> HeaderEncoder<Addr> {
         self.inner.extend(len.to_be_bytes());
 
@@ -100,7 +100,7 @@ impl HeaderEncoder<Len> {
 }
 
 impl HeaderEncoder<Addr> {
-    #[inline(always)]
+    #[inline]
     fn write_addr(mut self, address_pair: &AddressPair) -> HeaderEncoder<Finished> {
         match address_pair {
             AddressPair::Unspecified => HeaderEncoder {
@@ -160,6 +160,10 @@ impl HeaderEncoder<Finished> {
     /// Writes the `ALPN` extension bytes to the header.
     ///
     /// See [`ExtensionType::ALPN`].
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn write_ext_alpn(self, alpn: &[u8]) -> Result<Self, EncodeError> {
         Ok(self.write_ext_custom(ExtensionRef::new(ExtensionType::ALPN, alpn).ok_or(EncodeError::ExtensionTooLong)?))
     }
@@ -168,6 +172,10 @@ impl HeaderEncoder<Finished> {
     /// Writes the `Authority` extension bytes to the header.
     ///
     /// See [`ExtensionType::Authority`].
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn write_ext_authority(self, authority: &[u8]) -> Result<Self, EncodeError> {
         Ok(self.write_ext_custom(
             ExtensionRef::new(ExtensionType::Authority, authority).ok_or(EncodeError::ExtensionTooLong)?,
@@ -178,6 +186,10 @@ impl HeaderEncoder<Finished> {
     /// Writes padding zeros to the header, the total size is `3 + padding`.
     ///
     /// See [`ExtensionType::NoOp`].
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn write_ext_no_op(mut self, padding: u16) -> Result<Self, EncodeError> {
         self.inner.push(ExtensionType::NoOp as u8);
         self.inner.extend(padding.to_be_bytes());
@@ -186,10 +198,14 @@ impl HeaderEncoder<Finished> {
     }
 
     #[inline]
-    #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::missing_panics_doc, reason = "XXX")]
     /// Writes the `UniqueId` extension bytes to the header.
     ///
     /// See [`ExtensionType::UniqueId`].
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn write_ext_unique_id(self, payload: &[u8]) -> Result<Self, EncodeError> {
         if payload.len() > 128 {
             return Err(EncodeError::ExtensionTooLong);
@@ -203,6 +219,10 @@ impl HeaderEncoder<Finished> {
     /// Writes the `NetworkNamespace` extension bytes to the header.
     ///
     /// See [`ExtensionType::NetworkNamespace`].
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn write_ext_network_namespace(self, payload: &[u8]) -> Result<Self, EncodeError> {
         Ok(self.write_ext_custom(
             ExtensionRef::new(ExtensionType::NetworkNamespace, payload).ok_or(EncodeError::ExtensionTooLong)?,
@@ -230,9 +250,13 @@ impl HeaderEncoder<Finished> {
     }
 
     #[cfg(feature = "feat-codec-v2-crc32c")]
-    #[allow(clippy::missing_panics_doc)]
+    #[allow(clippy::missing_panics_doc, reason = "XXX")]
     /// Calculates and writes the `CRC32C` extension bytes to the header and
     /// finalizes the header encoding.
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn finish_with_crc32c(mut self) -> Result<Vec<u8>, EncodeError> {
         const FIXED_CRC32C_EXTENSION: [u8; 7] = [
             ExtensionType::CRC32C as u8,
@@ -244,6 +268,7 @@ impl HeaderEncoder<Finished> {
             0, // Placeholder for the CRC32C value
         ];
 
+        #[allow(clippy::cast_possible_truncation, reason = "XXX")]
         self.update_length(FIXED_CRC32C_EXTENSION.len() as u16)?;
 
         let crc32c_bytes =
@@ -254,8 +279,12 @@ impl HeaderEncoder<Finished> {
             .finish()
     }
 
-    #[inline(always)]
+    #[inline]
     /// Finalizes the header encoding.
+    ///
+    /// # Errors
+    ///
+    /// See [`EncodeError`].
     pub fn finish(mut self) -> Result<Vec<u8>, EncodeError> {
         self.update_length(0)?;
 
@@ -263,6 +292,7 @@ impl HeaderEncoder<Finished> {
     }
 }
 
+#[allow(clippy::module_name_repetitions, reason = "XXX")]
 #[cfg(feature = "feat-codec-encode")]
 #[derive(Debug)]
 #[derive(thiserror::Error)]

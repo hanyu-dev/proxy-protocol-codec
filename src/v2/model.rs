@@ -201,6 +201,10 @@ impl AddressPair {
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the source address.
+    ///
+    /// # Errors
+    ///
+    /// The platform does not support UDS addresses.
     pub fn src_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -216,11 +220,17 @@ impl AddressPair {
             Self::Unix { src_addr, .. } => uni_addr::unix::SocketAddr::from_bytes_until_nul(src_addr)
                 .map(Into::into)
                 .map(Some),
+            #[cfg(not(unix))]
+            Self::Unix { .. } => Err(io::Error::other("The platform does not support UDS addresses.")),
         }
     }
 
     #[cfg(feature = "feat-uni-addr")]
     /// Returns the destination address.
+    ///
+    /// # Errors
+    ///
+    /// The platform does not support UDS addresses.
     pub fn dst_uni_addr(&self) -> io::Result<Option<uni_addr::UniAddr>> {
         use core::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
@@ -236,6 +246,8 @@ impl AddressPair {
             Self::Unix { dst_addr, .. } => uni_addr::unix::SocketAddr::from_bytes_until_nul(dst_addr)
                 .map(Into::into)
                 .map(Some),
+            #[cfg(not(unix))]
+            Self::Unix { .. } => Err(io::Error::other("The platform does not support UDS addresses.")),
         }
     }
 }
@@ -326,7 +338,7 @@ pub struct ExtensionRef<'a> {
     /// The type of the extension.
     typ: u8,
 
-    #[allow(unused)]
+    #[allow(unused, reason = "XXX")]
     /// The length of the value in bytes.
     len: u16,
 
@@ -352,6 +364,7 @@ impl<'a> ExtensionRef<'a> {
             return None; // Length exceeds maximum allowed size
         }
 
+        #[allow(clippy::cast_possible_truncation, reason = "Checked above")]
         Some(Self {
             typ,
             len: len as u16,
@@ -363,6 +376,10 @@ impl<'a> ExtensionRef<'a> {
     /// Returns the type of the extension.
     ///
     /// If the type is not recognized, returns an `Err` with the raw type byte.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(u8)` if the type is not recognized.
     pub const fn typ(&self) -> Result<ExtensionType, u8> {
         match ExtensionType::from_u8(self.typ) {
             Some(typ) => Ok(typ),

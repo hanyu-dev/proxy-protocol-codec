@@ -1,38 +1,99 @@
-name: CI Test
+name: CI
 
 on:
   push:
-    paths: [ "src/**", "Cargo.toml"]
-  workflow_dispatch: {}
+    branches: ["main"]
+    paths:
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci.yml"
+  merge_group:
+    paths:
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
+  RUSTFLAGS: -Dwarnings
+  RUST_BACKTRACE: full
   CARGO_TERM_COLOR: always
 
 jobs:
   test:
-    name: Build & Test
-    runs-on: ubuntu-latest
+    name: Test (Rust ${{matrix.toolchain}}, ${{matrix.os}}, target ${{matrix.target}})
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ["nightly", "beta", "stable", "1.83.0"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    timeout-minutes: 45
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Read MSRV from Cargo.toml
-        id: msrv
-        run: |
-          echo "MSRV=$(grep '^rust-version = ' Cargo.toml | cut -d'"' -f2)" >> $GITHUB_ENV
-      - name: Setup Rust toolchain to MSRV
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.MSRV }}
-      - name: Build
-        run: cargo build --verbose
-      # criterion breaks MSRV
-      - name: Setup Rust toolchain to latest stable
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+          toolchain: ${{matrix.toolchain}}
+          components: llvm-tools, clippy, rust-src
+      - uses: taiki-e/install-action@v2
         with:
-          toolchain: stable
-      - name: Test
-        run: cargo test --verbose
-        env:
-          RUST_BACKTRACE: 1
+          tool: just,cargo-llvm-cov,cargo-nextest
+      - name: Enable type layout randomization
+        if: matrix.toolchain == 'nightly'
+        run: echo RUSTFLAGS=${RUSTFLAGS}\ -Zrandomize-layout >> $GITHUB_ENV
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools
+        if: endsWith(matrix.target, 'musl')
+      - run: rustup target add ${{matrix.target}}
+      - run: just ci-test --target ${{matrix.target}}
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RUSTDOCFLAGS: -Dwarnings
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/install@cargo-docs-rs
+      - run: cargo docs-rs
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.83.0
+          components: clippy
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - run: just clippy --all
